@@ -1,0 +1,3 @@
+E:/Numercial Method/lab1/ex2/num_to_string_add/cmake-build-debug/CMakeFiles/num_to_string_add.dir
+E:/Numercial Method/lab1/ex2/num_to_string_add/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/Numercial Method/lab1/ex2/num_to_string_add/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+{% block mainbody %}
+
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>选择统计方式</legend>
+    </fieldset>
+    <div style="padding: 15px;">
+        <form class="layui-form layui-form-pane" action="/cheque/statistics/" method="post">
+            {% csrf_token %}
+            <div class="layui-form-item">
+                <label class="layui-form-label" style="width:130px;">统计方式</label>
+                <div class="layui-input-inline">
+                    <select name="searchType" lay-filter="searchType" id="searchType">
+                        <option value="S1" selected="">按年统计</option>
+                        <option value="S2">按月统计</option>
+                        <option value="S3">按季统计</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item" id="S1">
+                <div class="layui-inline">
+                    <label class="layui-form-label" style="width:130px;">年范围</label>
+                    <div class="layui-input-inline">
+                        <select name="year1" lay-filter="int|positive">
+                            <option value="2000">2000</option>
+                            <option value="2001">2001</option>
+                            <option value="2002">2002</option>
+                            <option value="2003">2003</option>
+                            <option value="2004">2004</option>
+                            <option value="2005">2005</option>
+                            <option value="2006">2006</option>
+                            <option value="2007">2007</option>
+                            <option value="2008">2008</option>
+                            <option value="2009">2009</option>
+                            <option value="2010">2010</option>
+                            <option value="2011">2011</option>
+                            <option value="2012">2012</option>
+                            <option value="2013">2013</option>
+                            <option value="2014">2014</option>
+                            <option value="2015">2015</option>
+                            <option value="2016" selected="">2016</option>
+                            <option value="2017">2017</option>
+                            <option value="2018">2018</option>
+                            <option value="2019">2019</option>
+                            <option value="2020">2020</option>
+                        </select>
+                    </div>
+                    <div class="layui-form-mid">-</div>
+                    <div class="layui-input-inline">
+                        <select name="year2" lay-filter="int|positive">
+                            <option value="2000">2000</option>
+                            <option value="2001">2001</option>
+                            <option value="2002">2002</option>
+                            <option value="2003">2003</option>
+                            <option value="2004">2004</option>
+                            <option value="2005">2005</option>
+                            <option value="2006">2006</option>
+                            <option value="2007">2007</option>
+                            <option value="2008">2008</option>
+                            <option value="2009">2009</option>
+                            <option value="2010">2010</option>
+                            <option value="2011">2011</option>
+                            <option value="2012">2012</option>
+                            <option value="2013">2013</option>
+                            <option value="2014">2014</option>
+                            <option value="2015">2015</option>
+                            <option value="2016">2016</option>
+                            <option value="2017">2017</option>
+                            <option value="2018">2018</option>
+                            <option value="2019">2019</option>
+                            <option value="2020" selected="">2020</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item" id="S2" style="display: none">
+                <div class="layui-inline">
+                    <label class="layui-form-label" style="width:130px;">选择年</label>
+                    <div class="layui-input-inline">
+                        <select name="year3" lay-filter="int|positive">
+                            <option value="2000">2000</option>
+                            <option value="2001">2001</option>
+                            <option value="2002">2002</option>
+                            <option value="2003">2003</option>
+                            <option value="2004">2004</option>
+                            <option value="2005">2005</option>
+                            <option value="2006">2006</option>
+                            <option value="2007">2007</option>
+                            <option value="2008">2008</option>
+                            <option value="2009">2009</option>
+                            <option value="2010">2010</option>
+                            <option value="2011">2011</option>
+                            <option value="2012">2012</option>
+                            <option value="2013">2013</option>
+                            <option value="2014">2014</option>
+                            <option value="2015">2015</option>
+                            <option value="2016">2016</option>
+                            <option value="2017">2017</option>
+                            <option value="2018">2018</option>
+                            <option value="2019">2019</option>
+                            <option value="2020" selected="">2020</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if code == '200' %}
+        <div class="layui-tab layui-tab-card">
+        <ul class="layui-tab-title">
+            <li class="layui-this">折线图</li>
+            <li>条形图</li>
+            <li>表格</li>
+        </ul>
+        <div class="layui-tab-content" style="height:2000px">
+            <div class="layui-tab-item layui-show">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段的支票客户总数</legend>
+                </fieldset>
+                <div id="table1" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段办理的支票客户总数</legend>
+                </fieldset>
+                <div id="table2" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段拥有的支票金额数</legend>
+                </fieldset>
+                <div id="table3" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段的支票交易金额数</legend>
+                </fieldset>
+                <div id="table4" style="width: 600px;height:400px;"></div>
+            </div>
+            <div class="layui-tab-item">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段的支票客户总数</legend>
+                </fieldset>
+                <div id="table5" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段办理的支票客户总数</legend>
+                </fieldset>
+                <div id="table6" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段拥有的支票金额数</legend>
+                </fieldset>
+
+                <div id="table7" style="width: 600px;height:400px;"></div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段的支票交易金额数</legend>
+                </fieldset>
+                <div id="table8" style="width: 600px;height:400px;"></div>
+            </div>
+            <div class="layui-tab-item">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段的支票客户总数</legend>
+                </fieldset>
+                <table class="layui-table">
+                    <thead>
+                    {% for i in user.0 %}
+                        <th>{{ i }}</th>
+                    {% endfor %}
+                    </thead>
+                    <tbody>
+                    {% for i in user %}
+                        {% if forloop.counter0 != 0 %}
+                            <tr>
+                                {% for j in i %}
+                                    <td>{{ j }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段办理的支票客户总数</legend>
+                </fieldset>
+                <table class="layui-table">
+                    <thead>
+                    {% for i in userBusiness.0 %}
+                        <th>{{ i }}</th>
+                    {% endfor %}
+                    </thead>
+                    <tbody>
+                    {% for i in userBusiness %}
+                        {% if forloop.counter0 != 0 %}
+                            <tr>
+                                {% for j in i %}
+                                    <td>{{ j }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行截至该时间段拥有的支票金额数</legend>
+                </fieldset>
+                <table class="layui-table">
+                    <thead>
+                    {% for i in cash.0 %}
+                        <th>{{ i }}</th>
+                    {% endfor %}
+                    </thead>
+                    <tbody>
+                    {% for i in cash %}
+                        {% if forloop.counter0 != 0 %}
+                            <tr>
+                                {% for j in i %}
+                                    <td>{{ j }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>时间-银行在该时间段的支票交易金额数</legend>
+                </fieldset>
+                <table class="layui-table">
+                    <thead>
+                    {% for i in cashBusiness.0 %}
+                        <th>{{ i }}</th>
+                    {% endfor %}
+                    </thead>
+                    <tbody>
+                    {% for i in cashBusiness %}
+                        {% if forloop.counter0 != 0 %}
+                            <tr>
+                                {% for j in i %}
+                                    <td>{{ j }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    {% endif %}
+
+
+{% endblock mainbody %}
+
+{% block extrajs %}
+
+    layui.use(['form', 'layedit', 'laydate','element'], function(){
+    var form = layui.form
+    ,layer = layui.layer
+    ,layedit = layui.layedit
+    ,laydate = layui.laydate
+    ,element = layui.element;
+
+    var status = {{ code|safe }};
+    var message = {{ msg|safe }};
+    if (status == 200 ) {
+    layer.alert(message,{icon:6});
+    } else if (status == 400){
+    layer.alert(message,{icon:5});
+    }
+    });
+
+
+
+{% endblock extrajs %}
+{% block extrajs2 %}
+    {% block searchConditionJs %}
+        <script>
+            layui.use(['form'], function () {
+                var form = layui.form;
+                var layer = layui.layer;
+                form.on('select(searchType)', function (data) {
+                    if (data.value === 'S1') {
+
+                        document.getElementById("S1").style.display = "inline-block";
+                        document.getElementById("S2").style.display = "none";
+                    } else {
+
+                        document.getElementById("S2").style.display = "inline-block";
+                        document.getElementById("S1").style.display = "none";
+                    }
+                });
+
+            });
+        </script>
+        <script type="text/javascript">
+            // 基于准备好的dom，初始化echarts实例
+            var myChart1 = echarts.init(document.getElementById('table1'));
+            var myChart2 = echarts.init(document.getElementById('table2'));
+            var myChart3 = echarts.init(document.getElementById('table3'));
+            var myChart4 = echarts.init(document.getElementById('table4'));
+            var myChart5 = echarts.init(document.getElementById('table5'));
+            var myChart6 = echarts.init(document.getElementById('table6'));
+            var myChart7 = echarts.init(document.getElementById('table7'));
+            var myChart8 = echarts.init(document.getElementById('table8'));
+            var cash =
+            {{ cash|safe }}
+            var cashBusiness =
+            {{ cashBusiness|safe }}
+            var user =
+            {{ user|safe }}
+            var userBusiness =
+            {{ userBusiness|safe }}
+            // 指定图表的配置项和数据
+            var option1 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: user
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                ]
+            };
+            var option2 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: userBusiness
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                ]
+            };
+            var option3 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: cash
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                ]
+            };
+            var option4 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: cashBusiness
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                    {type: 'line'},
+                ]
+            };
+            var option5 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: user
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                ]
+            };
+            var option6 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: userBusiness
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                ]
+            };
+            var option7 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: cash
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                ]
+            };
+            var option8 = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: cashBusiness
+                },
+                xAxis: {type: 'category'},
+                yAxis: {},
+                // Declare several bar series, each will be mapped
+                // to a column of dataset.source by default.
+                series: [
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                    {type: 'bar'},
+                ]
+            };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart1.setOption(option1);
+            myChart2.setOption(option2);
+            myChart3.setOption(option3);
+            myChart4.setOption(option4);
+            myChart5.setOption(option5);
+            myChart6.setOption(option6);
+            myChart7.setOption(option7);
+            myChart8.setOption(option8);
+        </script>
+    {% endblock searchConditionJs %}
+{% endblock extrajs2 %}

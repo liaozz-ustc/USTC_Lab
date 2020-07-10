@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>signup</title>
+</head>
+<body>
+    <h1>欢迎注册</h1>
+    <form action="/user/signup/" method="post">
+        {% csrf_token %}
+        <p>
+            <label for="username">用户名:</label>
+            <input type="text" id="username" name="username" required autofocus>
+        </p>
+        <p>
+            <label for="password">密码：</label>
+            <input type="password" id="password" name="password" required>
+        </p>
+        <div>
+            <button type="submit">注册</button>
+        </div>
+    </form>
+</body>
+
+<script>
+    var status = {{ status|safe }};
+    var message = {{ message|safe }};
+    alert(status + ":" + message);
+    if (status == 200 ) {
+        window.location.href = "/user/login";
+    }
+</script>

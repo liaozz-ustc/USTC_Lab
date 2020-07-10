@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>inquire</title>
+</head>
+<body>
+    {% if request.session.username %}
+        <h1>欢迎你，{{ request.session.username }}</h1>
+    {% else  %}
+        <h1>欢迎,<a href="/user/login">请登录</a></h1>
+    {% endif %}
+    <a href="/user/logout">登出</a>
+    <h1>节日查询</h1>
+    <form action="/index/" method="post">
+        {% csrf_token %}
+        <p>
+            <label for="date">日期:</label>
+            <input type="text" id="date" name="date" required autofocus>
+        </p>
+        <div>
+            <button type="submit">查询</button>
+        </div>
+    </form>
+</body>
+
+<script>
+    var status = {{ status|safe }};
+    var message = {{ message|safe }};
+    alert(status + ":" + message);
+</script>

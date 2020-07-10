@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>银行业务管理系统</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}">
+    <script src="{% static 'echarts.min.js' %}"></script>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">银行业务管理系统</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                {% if request.session.username %}
+                    <a href="javascript:;">{{ request.session.username }}</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="">基本资料</a></dd>
+                        <dd><a href="">安全设置</a></dd>
+                    </dl>
+                {% else %}
+                    <a>欢迎，请登录</a>
+                {% endif %}
+            </li>
+            <li class="layui-nav-item">
+                {% if request.session.username %}
+                    <a href="/user/logout">登出</a>
+                {% else %}
+                    <a href="/user/login">登录</a>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">客户管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/customer/add/">增加客户</a></dd>
+                        <dd><a href="/customer/delete">删除客户</a></dd>
+                        <dd><a href="/customer/modify">修改客户信息</a></dd>
+                        <dd><a href="/customer/search">查询客户信息</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">账户管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/account/add/">开设账户</a></dd>
+                        <dd><a href="/account/delete/">销毁账户</a></dd>
+                        <dd><a href="/account/modify/">修改账户信息</a></dd>
+                        <dd><a href="/account/deposit_withdrawal/">账户存取款</a></dd>
+                        <dd><a href="/account/search/">查询账户信息</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">贷款管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/loan/add/">办理贷款</a></dd>
+                        <dd><a href="/loan/delete/">删除贷款</a></dd>
+                        <dd><a href="/loan/pay/">发放贷款</a></dd>
+                        <dd><a href="/loan/search/">查询贷款信息</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">业务统计</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/loan/statistics/">贷款业务统计</a></dd>
+                        <dd><a href="/save/statistics/">储蓄业务统计</a></dd>
+                        <dd><a href="/cheque/statistics">支票业务统计</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        {% if request.session.username %}
+            {% block mainbody %}
+
+            {% endblock mainbody %}
+        {% else %}
+            <div class="layui-body">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>未登录，请您登录</legend>
+                </fieldset>
+                <div style="padding: 15px;position: absolute;top:20%;left: 20%">
+                    <form class="layui-form layui-form-pane" action="/user/login/" method="post">
+                        {% csrf_token %}
+                        <div class="layui-form-item">
+                            <label style="width:100px;" class="layui-form-label">用户名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="username" lay-verify="name" placeholder="请输入用户名"
+                                       autocomplete="off"
+                                       class="layui-input" style="width:300px;">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" style="width:100px;">密码</label>
+                            <div class="layui-input-inline">
+                                <input type="password" name="password" required lay-verify="required"
+                                       placeholder="请输入密码"
+                                       autocomplete="off" class="layui-input" style="width:300px;">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" >
+                            <div class="layui-input-block" >
+                                <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" style="width: 100px">登录</button>
+                                <a class="layui-btn" href="/user/signup/" style="width: 100px">增设管理员</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        © PB17081504
+    </div>
+</div>
+<script src="{% static 'layui/layui.all.js' %}"></script>
+<script>
+    //JavaScript代码区域
+
+    var now = new Date();
+    for (var i = 0; i < document.getElementsByClassName("nowDate").length; i++) {
+        document.getElementsByClassName("nowDate")[i].value = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+    }
+
+    layui.use(['form', 'layedit', 'laydate', 'element'], function () {
+        var form = layui.form
+            , layer = layui.layer
+            , layedit = layui.layedit
+            , laydate = layui.laydate
+            , element = layui.element;
+        //自定义验证规则
+        form.verify({
+            title: function (value) {
+                if (value.length < 5) {
+                    return '标题至少得个字符';
+                }
+            }
+            , pass: [
+                /^[\S]{6,12}$/
+                , '密码必须6到12位，且不能出现空格'
+            ]
+            , content: function (value) {
+                layedit.sync(editIndex);
+            }
+            , name: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (!new RegExp("^[a-zA-Z0-9_\u4e00-\u9fa5\\s·]+$").test(value)) {
+                    return '姓名不能有特殊字符';
+                }
+                if (/(^\_)|(\__)|(\_+$)/.test(value)) {
+                    return '姓名首尾不能出现下划线\'_\'';
+                }
+                if (/^\d+$/.test(value)) {
+                    return '姓名不能全为数字';
+                }
+            }
+            , address: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (!new RegExp("^[\u4e00-\u9fa5\]+$").test(value)) {
+                    return '地址只能是中文';
+                }
+            }
+            , relationship: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (!new RegExp("^[\u4e00-\u9fa5\]+$").test(value)) {
+                    return '关系只能是中文';
+                }
+            },
+            len1: function (value, item) {
+                if (value.length > 1) {
+                    return '长度只能为1位'
+                }
+            },
+            chinese: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (!new RegExp("^[\u4e00-\u9fa5\]+$").test(value)) {
+                    return '只能是中文';
+                }
+            },
+            account: [/^\d+$/,
+                '账户只能是数字'
+            ]
+            , float: [/^\d+\.\d+$/,
+                '只能是小数'
+            ],
+            int: [/^\d+$/,
+                '只能是整数'
+            ],
+            positive: function (value, item) {
+                if (Number(value) < 0) {
+                    return '不能是负数'
+                }
+            },
+            positive2: function (value, item) {
+                if (Number(value) <= 0) {
+                    return '只能是正数'
+                }
+            },
+        });
+
+        //监听指定开关
+        form.on('switch(switchTest)', function (data) {
+            layer.msg('开关checked：' + (this.checked ? 'true' : 'false'), {
+                offset: '6px'
+            });
+            layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+        });
+
+        //监听提交
+        <!--        form.on('submit(demo1)', function(data){-->
+        <!--            layer.alert(JSON.stringify(data.field), {-->
+        <!--                title: '增加的客户信息'-->
+        <!--            });-->
+        <!--            return false;-->
+        <!--        });-->
+
+
+    });
+    var now = new Date();
+    document.getElementById('addDate').value = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+    document.getElementById('addDate2').value = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+
+</script>
+<script>
+    {% block extrajs %}
+
+    {% endblock extrajs %}
+</script>
+{% block extrajs2 %}
+
+{% endblock extrajs2 %}
+</body>
+</html>

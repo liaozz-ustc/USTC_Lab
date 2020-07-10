@@ -1,0 +1,182 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#toolBar {
+    width: 1220px;
+    height: 70px;
+    opacity: 100%;
+    background-color: #97A5BC;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.10);
+}
+
+#inputField {
+    position: absolute;
+    left: 40px;
+    top: 0;
+    width: 1140px;
+    height: 70px;
+    opacity: 100%;
+}
+
+.inputValue {
+    width: 70px;
+    height: 40px;
+    top: 15px;
+    opacity: 100%;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.10);
+    border-radius: 5px;
+}
+
+#inputHours {
+    position: absolute;
+    left: 0;
+}
+
+#inputMinutes {
+    position: absolute;
+    left: 90px;
+}
+
+#inputSeconds {
+    position: absolute;
+    left: 180px;
+}
+
+#hint {
+    position: absolute;
+    left: 0;
+    top: 24px;
+    width: 192px;
+    height: 22px;
+    opacity: 100%;
+    font-family: PingFangSC-Regular, "PingFang SC", sans-serif;
+    color: #FFFFFF;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0;
+}
+
+.button {
+    width: 98px;
+    height: 40px;
+    top: 15px;
+    opacity: 100%;
+    border: none;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.10);
+    border-radius: 5px;
+    text-align: center;
+    line-height: 22px;
+    letter-spacing: 0;
+    font-family: PingFangSC-Regular, "PingFang SC", sans-serif;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+#countup {
+    position: absolute;
+    left: 270px;
+    background-color: #2188E9;
+}
+
+#countdown {
+    position: absolute;
+    left: 388px;
+    background-color: #2188E9;
+}
+
+#clear {
+    position: absolute;
+    left: 924px;
+    background-color: #DD2E1D;
+}
+
+#restart {
+    position: absolute;
+    left: 1042px;
+    background-color: #FFB020;
+}
+
+#pause {
+    position: absolute;
+    left: 187px;
+    background-color: #2188E9;
+}
+
+#resume {
+    position: absolute;
+    left: 187px;
+    background-color: #2188E9;
+}
+
+input {
+    font-family: PingFangSC-Regular, "PingFang SC", sans-serif;
+    width: 31px;
+    height: 22px;
+    opacity: 100%;
+    color: #AFAFAF;
+    font-size: 16px;
+    border: none;
+    line-height: 22px;
+    letter-spacing: 0;
+}
+
+#inputDivHours {
+    position: absolute;
+    left: 9px;
+    top: 9px;
+}
+
+#inputDivMinutes {
+    position: absolute;
+    left: 9px;
+    top: 9px;
+}
+
+#inputDivSeconds {
+    position: absolute;
+    left: 9px;
+    top: 9px;
+}
+
+label {
+    height: 22px;
+    top: 9px;
+    opacity: 100%;
+    font-family: PingFangSC-Regular, "PingFang SC", sans-serif;
+    color: #222222;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0;
+}
+
+#mainTimer {
+    position: relative;
+    width: 1220px;
+    height: 440px;
+    background-color: #F2F4F7;
+}
+
+#timerContainer {
+    position: absolute;
+    width: 1140px;
+    height: 440px;
+    left: 40px;
+    top: 0;
+}
+
+#time {
+    position: absolute;
+    left: 91px;
+    top: 127px;
+    width: 960px;
+    height: 200px;
+    opacity: 100%;
+    color: #333333;
+    font-size: 200px;
+    line-height: 200px;
+    font-family: PTMono-Bold, "PT Mono", monospace;
+    font-weight: 700;
+}

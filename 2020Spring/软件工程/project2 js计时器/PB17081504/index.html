@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="toolBar">
+    <div id="inputField">
+        <div id="inputHours" class="inputValue counter">
+            <div id="inputDivHours">
+                <input type="number" id="hour" class="inputFont" value=0>
+                <label for="hour">时</label>
+            </div>
+        </div>
+        <div id="inputMinutes" class="inputValue counter">
+            <div id="inputDivMinutes">
+                <input type="number" id="minute" class="inputFont" value=0>
+                <label for="minute">分</label>
+            </div>
+        </div>
+        <div id="inputSeconds" class="inputValue counter">
+            <div id="inputDivSeconds">
+                <input type="number" id="second" class="inputFont" value=0>
+                <label for="second">秒</label>
+            </div>
+        </div>
+        <span id="hint" style="display: none" class="counting paused counted">正在倒计时 12:20:00</span>
+        <button type="button" id="countup" class="button counter">
+            开始正计时
+        </button>
+        <button type="button" id="countdown" class="button counter">
+            开始倒计时
+        </button>
+        <button type="button" id="clear" class="button counting paused counted" style="display: none">
+            清空倒计时
+        </button>
+        <button type="button" id="restart" class="button counting paused counted" style="display: none">
+            重新再计时
+        </button>
+        <button type="button" id="resume" class="button paused" style="display: none">
+            恢复计时器
+        </button>
+        <button type="button" id="pause" class="button counting" style="display: none">
+            暂停计时器
+        </button>
+    </div>
+</div>
+<div id="mainTimer">
+    <div id="timerContainer">
+        <span id="time">00:00:00</span>
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

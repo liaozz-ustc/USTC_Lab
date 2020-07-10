@@ -1,0 +1,604 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: USTC ESLAB
+// Engineer: Huang Yifan (hyf15@mail.ustc.edu.cn)
+// 
+// Design Name: RV32I Core
+// Module Name: RV32I Core
+// Tool Versions: Vivado 2017.4.1
+// Description: Top level of our CPU Core
+//////////////////////////////////////////////////////////////////////////////////
+
+
+//功能说明
+    // RV32I Core的顶层模块
+//实验要求  
+    // 添加CSR指令的数据通路和相应部件
+`include "Parameters.v"  
+module RV32ICore(
+    input wire CPU_CLK,
+    input wire CPU_RST,
+    input wire [31:0] CPU_Debug_DataCache_A2,
+    input wire [31:0] CPU_Debug_DataCache_WD2,
+    input wire [3:0] CPU_Debug_DataCache_WE2,
+    output wire [31:0] CPU_Debug_DataCache_RD2,
+    input wire [31:0] CPU_Debug_InstCache_A2,
+    input wire [31:0] CPU_Debug_InstCache_WD2,
+    input wire [ 3:0] CPU_Debug_InstCache_WE2,
+    output wire [31:0] CPU_Debug_InstCache_RD2
+    );
+	//wire values definitions
+    wire bubbleF, flushF, bubbleD, flushD, bubbleE, flushE, bubbleM, flushM, bubbleW, flushW;
+    wire [31:0] jal_target, br_target;
+    wire jal, br;
+    wire jalr_ID, jalr_EX;
+    wire [31:0] NPC, PC_IF, PC_4, PC_ID, PC_EX;
+    wire [31:0] inst_ID;
+    wire reg_write_en_ID, reg_write_en_EX, reg_write_en_MEM, reg_write_en_WB;
+    wire [4:0] reg1_src_EX;
+    wire [4:0] reg2_src_EX;
+    wire [4:0] reg_dest_EX, reg_dest_MEM, reg_dest_WB;
+    wire [31:0] data_WB;
+    wire [31:0] reg1, reg1_EX;
+    wire [31:0] reg2, reg2_EX, reg2_MEM;
+    wire [31:0] op2;
+    wire [31:0] reg_or_imm;
+    wire op2_src;
+    wire [3:0] ALU_func_ID, ALU_func_EX;
+    wire [2:0] br_type_ID, br_type_EX;
+    //wire load_npc_ID, load_npc_EX;
+    //CSR
+    wire [1:0] load_npc_ID,load_npc_EX;
+    //CSR
+    wire wb_select_ID, wb_select_EX, wb_select_MEM;
+    wire [2:0] load_type_ID, load_type_EX, load_type_MEM;
+    wire [1:0] src_reg_en_ID, src_reg_en_EX;
+    wire [3:0] cache_write_en_ID, cache_write_en_EX, cache_write_en_MEM;
+    wire alu_src1_ID, alu_src1_EX;
+    wire [1:0] alu_src2_ID, alu_src2_EX;
+    wire [2:0] imm_type;
+    wire [31:0] imm;
+    wire [31:0] ALU_op1, ALU_op2, ALU_out;
+    wire [31:0] dealt_reg2;
+    wire [31:0] result, result_MEM;
+    wire [1:0] op1_sel, op2_sel, reg2_sel;
+
+    //CSR
+    wire [19:0] CSR_inst_EX;
+    wire [31:0] CSR_data_EX;
+    wire CSR_write_en_ID,CSR_write_en_EX;
+
+    //cache
+    wire miss;
+
+
+    //BTB
+    wire isTakenBr_BTB_IF, isTakenBr_BTB_ID, isTakenBr_BTB_EX;
+    wire [31:0] predictedPC;
+    wire wr_req_btb;
+    wire isTakenBr_EX;
+    wire br_target_Or_PC4;
+    wire [31:0] origin_PC_EX;
+    assign origin_PC_EX = PC_EX - 4;
+    wire realBr;
+    //BTB
+    //BHT
+    wire isTakenBr_BHT_IF,isTakenBr_BHT_ID,isTakenBr_BHT_EX;
+    wire wr_req_bht;
+    wire isHit_BTB_IF,isHit_BTB_ID,isHit_BTB_EX;
+    //BHT
+    //统计
+    reg [31:0] error_count,br_count;
+    wire [31:0] hit_count;
+    assign hit_count = br_count -error_count;
+    always @(posedge CPU_CLK or posedge CPU_RST)begin
+        if(CPU_RST)begin
+            error_count <= 0;
+            br_count <= 0;
+        end else begin
+            if(br)begin
+                error_count <= error_count + 1;
+            end
+            if(br_type_EX != `NOBRANCH )begin
+                br_count <= br_count + 1;
+            end   
+        end
+    end
+    //统计
+
+
+
+    // Adder to compute PC + 4
+    assign PC_4 = PC_IF + 4;
+    // MUX for op2 source
+    assign op2 = op2_src ? imm : reg2;
+    // Adder to compute PC_ID + Imm - 4
+    assign jal_target = PC_ID + op2 - 4;
+    // MUX for ALU op1
+    assign ALU_op1 = (op1_sel == 2'h0) ? result_MEM :
+                                         ((op1_sel == 2'h1) ? data_WB :
+                                                              (op1_sel == 2'h2) ? (PC_EX - 4) :
+                                                                                  reg1_EX);
+    // MUX for ALU op2
+    assign ALU_op2 = (op2_sel == 2'h0) ? result_MEM :
+                                         ((op2_sel == 2'h1) ? data_WB :
+                                                              ((op2_sel == 2'h2) ? {27'h0, reg2_src_EX} :
+                                                                                   reg_or_imm));
+
+    // MUX for Reg2,用于store
+    assign dealt_reg2 = (reg2_sel == 2'h0) ? result_MEM :
+                                            ((reg2_sel == 2'h1) ? data_WB : reg2_EX);
+
+
+    // MUX for result (ALU or PC_EX)
+    assign result = (load_npc_EX == 2'b01) ? PC_EX : 
+                                            ((load_npc_EX == 2'b10) ? CSR_data_EX: ALU_out);
+
+
+
+    //Module connections
+    // ---------------------------------------------
+    // PC-Generator
+    // ---------------------------------------------
+
+
+/*    NPC_Generator NPC_Generator1(
+        .PC(PC_4),
+        .jal_target(jal_target),
+        .jalr_target(ALU_out),
+        .br_target(br_target),
+        .jal(jal),
+        .jalr(jalr_EX),
+        .br(br),
+        .NPC(NPC)
+    );
+*/
+//BTB
+    NEW_NPC_Generator NEW_NPC_Generator1(
+        .PC(PC_4),
+        .jal_target(jal_target),
+        .jalr_target(ALU_out),
+        .br_target(br_target),
+        
+        .origin_PC4_EX(PC_EX),
+        .predictedPC(predictedPC),
+
+        .jal(jal),
+        .jalr(jalr_EX),
+        .br(br),
+
+        .isTakenBr_BTB_IF(isTakenBr_BHT_IF),
+        .br_target_Or_PC4(br_target_Or_PC4),
+
+        .NPC(NPC)
+    );
+//BTB
+
+    PC_IF PC_IF1(
+        .clk(CPU_CLK),
+        .bubbleF(bubbleF),
+        .flushF(flushF),
+        .NPC(NPC),
+        .PC(PC_IF)
+    );
+
+
+
+    // ---------------------------------------------
+    // IF stage
+    // ---------------------------------------------
+
+    PC_ID PC_ID1(
+        .clk(CPU_CLK),
+        .bubbleD(bubbleD),
+        .flushD(flushD),
+        .PC_IF(PC_4),
+        .PC_ID(PC_ID)
+    );
+
+
+    IR_ID IR_ID1(
+        .clk(CPU_CLK),
+        .bubbleD(bubbleD),
+        .flushD(flushD),
+        .write_en(|CPU_Debug_InstCache_WE2),
+        .addr(PC_IF[31:2]),
+        .debug_addr(CPU_Debug_InstCache_A2[31:2]),
+        .debug_input(CPU_Debug_InstCache_WD2),
+        .inst_ID(inst_ID),
+        .debug_data(CPU_Debug_InstCache_RD2)
+    );
+
+
+    //BTB
+    BtbBuffer BtbBuffer1(
+        .clk(CPU_CLK),
+        .rst(CPU_RST),
+        .PC_IF(PC_IF),
+        .isHit_BTB(isHit_BTB_IF),
+        .predictedPC(predictedPC),
+        .wr_req(wr_req_btb),
+        .PC_EX(origin_PC_EX),
+        .PC_Branch(br_target),
+        .isTakenBr_Ex(realBr)
+    );
+
+
+    Btb_IF_ID Btb_IF_ID1(
+        .clk(CPU_CLK),
+        .bubbleD(bubbleD),
+        .flushD(flushD),
+        .isTakenBr_BTB_IF(isHit_BTB_IF),
+        .isTakenBr_BTB_ID(isHit_BTB_ID)
+    );
+
+    Btb_IF_ID Btb_IF_ID2(
+        .clk(CPU_CLK),
+        .bubbleD(bubbleD),
+        .flushD(flushD),
+        .isTakenBr_BTB_IF(isTakenBr_BHT_IF),
+        .isTakenBr_BTB_ID(isTakenBr_BHT_ID)
+    );
+
+
+    //BTB
+
+    //BHT
+    BhtBuffer BhtBuffer1(
+        .clk(CPU_CLK),
+        .rst(CPU_RST),
+        .PC_IF(PC_IF),
+        .isHit_BTB(isHit_BTB_IF),
+        .isTakenBr_Bht(isTakenBr_BHT_IF),
+        .wr_req(wr_req_bht),
+        .PC_EX(origin_PC_EX),
+        .isTakenBr_Ex(realBr)
+    );
+    //BHT
+
+
+
+
+    // ---------------------------------------------
+    // ID stage
+    // ---------------------------------------------
+
+    //BTB
+    Btb_ID_EX Btb_ID_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .isTakenBr_BTB_ID(isHit_BTB_ID),
+        .isTakenBr_BTB_EX(isHit_BTB_EX)
+    );
+
+    Btb_ID_EX Btb_ID_EX2(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .isTakenBr_BTB_ID(isTakenBr_BHT_ID),
+        .isTakenBr_BTB_EX(isTakenBr_BHT_EX)
+    );
+
+    //BTB    
+
+
+
+    RegisterFile RegisterFile1(
+        .clk(CPU_CLK),
+        .rst(CPU_RST),
+        .write_en(reg_write_en_WB),
+        .addr1(inst_ID[19:15]),
+        .addr2(inst_ID[24:20]),
+        .wb_addr(reg_dest_WB),
+        .wb_data(data_WB),
+        .reg1(reg1),
+        .reg2(reg2)
+    );
+
+
+    ControllerDecoder ControllerDecoder1(
+        .inst(inst_ID),
+        .jal(jal),
+        .jalr(jalr_ID),
+        .op2_src(op2_src),
+        .ALU_func(ALU_func_ID),
+        .br_type(br_type_ID),
+        .load_npc(load_npc_ID),
+        .wb_select(wb_select_ID),
+        .load_type(load_type_ID),
+        .src_reg_en(src_reg_en_ID),
+        .reg_write_en(reg_write_en_ID),
+        .cache_write_en(cache_write_en_ID),
+        .alu_src1(alu_src1_ID),
+        .alu_src2(alu_src2_ID),
+        .imm_type(imm_type),
+
+        .CSR_write_en(CSR_write_en_ID)
+    );
+
+    ImmExtend ImmExtend1(
+        .inst(inst_ID[31:7]),
+        .imm_type(imm_type),
+        .imm(imm)
+    );
+
+
+    //CSR
+    CSR_Inst_EX CSR_Inst_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .CSR_inst(inst_ID[31:12]),
+        .CSR_inst_EX(CSR_inst_EX)
+    );
+    //CSR
+
+
+    PC_EX PC_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .PC_ID(PC_ID),
+        .PC_EX(PC_EX)
+    );
+
+    BR_Target_EX BR_Target_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .address(jal_target),
+        .address_EX(br_target)
+    );
+
+    Op1_EX Op1_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .reg1(reg1),
+        .reg1_EX(reg1_EX)
+    );
+
+    Op2_EX Op2_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .op2(op2),
+        .reg_or_imm(reg_or_imm)
+    );
+
+    Reg2_EX Reg2_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .reg2(reg2),
+        .reg2_EX(reg2_EX)
+    );
+
+    Addr_EX Addr_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .reg1_src_ID(inst_ID[19:15]),
+        .reg2_src_ID(inst_ID[24:20]),
+        .reg_dest_ID(inst_ID[11:7]),
+        .reg1_src_EX(reg1_src_EX),
+        .reg2_src_EX(reg2_src_EX),
+        .reg_dest_EX(reg_dest_EX)
+    );
+
+
+
+    Ctrl_EX Ctrl_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .jalr_ID(jalr_ID),
+        .ALU_func_ID(ALU_func_ID),
+        .br_type_ID(br_type_ID),
+        .load_npc_ID(load_npc_ID),
+        .wb_select_ID(wb_select_ID),
+        .load_type_ID(load_type_ID),
+        .src_reg_en_ID(src_reg_en_ID),
+        .reg_write_en_ID(reg_write_en_ID),
+        .cache_write_en_ID(cache_write_en_ID),
+        .alu_src1_ID(alu_src1_ID),
+        .alu_src2_ID(alu_src2_ID),
+        .jalr_EX(jalr_EX),
+        .ALU_func_EX(ALU_func_EX),
+        .br_type_EX(br_type_EX),
+        .load_npc_EX(load_npc_EX),
+        .wb_select_EX(wb_select_EX),
+        .load_type_EX(load_type_EX),
+        .src_reg_en_EX(src_reg_en_EX),
+        .reg_write_en_EX(reg_write_en_EX),
+        .cache_write_en_EX(cache_write_en_EX),
+        .alu_src1_EX(alu_src1_EX),
+        .alu_src2_EX(alu_src2_EX),
+
+        .CSR_write_en_ID(CSR_write_en_ID),
+        .CSR_write_en_EX(CSR_write_en_EX)
+    );
+
+
+    // ---------------------------------------------
+    // EX stage
+    // ---------------------------------------------
+
+    //CSR
+    CsrRegisterFile CsrRegisterFile1(
+        .clk(CPU_CLK),
+        .rst(CPU_RST),
+        .CSR_write_en(CSR_write_en_EX),
+        //.addr(CSR_inst_EX[16:5]),
+        .addr(CSR_inst_EX[19:8]),
+        .zimm(CSR_inst_EX[7:3]),
+        .reg1_data(ALU_op1),
+        .CSR_funct3(CSR_inst_EX[2:0]),
+        .CSR_data(CSR_data_EX)
+    );
+    //CSR
+
+    ALU ALU1(
+        .op1(ALU_op1),
+        .op2(ALU_op2),
+        .ALU_func(ALU_func_EX),
+        .ALU_out(ALU_out)
+    );
+
+/*    BranchDecision BranchDecision1(
+        .reg1(ALU_op1),
+        .reg2(dealt_reg2),
+        .br_type(br_type_EX),
+        .br(br)
+    );*/
+//BTB
+    BranchDecision BranchDecision1(
+        .reg1(ALU_op1),
+        .reg2(dealt_reg2),
+        .br_type(br_type_EX),
+        .br(realBr)
+    );
+
+    BranchSwitch BranchSwitch1(
+        .realBr(realBr),
+        .isHit_BTB(isHit_BTB_EX),
+        .br_type(br_type_EX),
+        .isTakenBr_BHT_EX(isTakenBr_BHT_EX),
+        .br(br),
+        .br_target_Or_PC4(br_target_Or_PC4),
+        .wr_req_btb(wr_req_btb),
+        .wr_req_bht(wr_req_bht)
+    );
+    
+//BTB
+
+    Result_MEM Result_MEM1(
+        .clk(CPU_CLK),
+        .bubbleM(bubbleM),
+        .flushM(flushM),
+        .result(result),
+        .result_MEM(result_MEM)
+    );
+
+    Reg2_MEM Reg2_MEM1(
+        .clk(CPU_CLK),
+        .bubbleM(bubbleM),
+        .flushM(flushM),
+        .reg2_EX(dealt_reg2),
+        .reg2_MEM(reg2_MEM)
+    );
+
+    Addr_MEM Addr_MEM1(
+        .clk(CPU_CLK),
+        .bubbleM(bubbleM),
+        .flushM(flushM),
+        .reg_dest_EX(reg_dest_EX),
+        .reg_dest_MEM(reg_dest_MEM)
+    );
+
+
+
+    Ctrl_MEM Ctrl_MEM1(
+        .clk(CPU_CLK),
+        .bubbleM(bubbleM),
+        .flushM(flushM),
+        .wb_select_EX(wb_select_EX),
+        .load_type_EX(load_type_EX),
+        .reg_write_en_EX(reg_write_en_EX),
+        .cache_write_en_EX(cache_write_en_EX),
+        .wb_select_MEM(wb_select_MEM),
+        .load_type_MEM(load_type_MEM),
+        .reg_write_en_MEM(reg_write_en_MEM),
+        .cache_write_en_MEM(cache_write_en_MEM)
+    );
+
+
+
+    // ---------------------------------------------
+    // MEM stage
+    // ---------------------------------------------
+
+
+    WB_Data_WB WB_Data_WB1(
+        .clk(CPU_CLK),
+        .bubbleW(bubbleW),
+        .flushW(flushW),
+        .wb_select(wb_select_MEM),
+        .load_type(load_type_MEM),
+        .write_en(cache_write_en_MEM),
+        .debug_write_en(CPU_Debug_DataCache_WE2),
+        .addr(result_MEM),
+        .debug_addr(CPU_Debug_DataCache_A2),
+        .in_data(reg2_MEM),
+        .debug_in_data(CPU_Debug_DataCache_WD2),
+        .debug_out_data(CPU_Debug_DataCache_RD2),
+        .data_WB(data_WB),
+
+        .rst(CPU_RST),
+        .miss(miss)
+    );
+
+
+    Addr_WB Addr_WB1(
+        .clk(CPU_CLK),
+        .bubbleW(bubbleW),
+        .flushW(flushW),
+        .reg_dest_MEM(reg_dest_MEM),
+        .reg_dest_WB(reg_dest_WB)
+    );
+
+    Ctrl_WB Ctrl_WB1(
+        .clk(CPU_CLK),
+        .bubbleW(bubbleW),
+        .flushW(flushW),
+        .reg_write_en_MEM(reg_write_en_MEM),
+        .reg_write_en_WB(reg_write_en_WB)
+    );
+
+
+    // ---------------------------------------------
+    // WB stage
+    // ---------------------------------------------
+
+
+
+    // ---------------------------------------------
+    // Harzard Unit
+    // ---------------------------------------------
+    HarzardUnit HarzardUnit1(
+        .rst(CPU_RST),
+        .reg1_srcD(inst_ID[19:15]),
+        .reg2_srcD(inst_ID[24:20]),
+        .reg1_srcE(reg1_src_EX),
+        .reg2_srcE(reg2_src_EX),
+        .reg_dstE(reg_dest_EX),
+        .reg_dstM(reg_dest_MEM),
+        .reg_dstW(reg_dest_WB),
+        .br(br),
+        .jalr(jalr_EX),
+        .jal(jal),
+        .src_reg_en(src_reg_en_EX),
+        .wb_select(wb_select_EX),
+        .reg_write_en_MEM(reg_write_en_MEM),
+        .reg_write_en_WB(reg_write_en_WB),
+        .alu_src1(alu_src1_EX),
+        .alu_src2(alu_src2_EX),
+        .flushF(flushF),
+        .bubbleF(bubbleF),
+        .flushD(flushD),
+        .bubbleD(bubbleD),
+        .flushE(flushE),
+        .bubbleE(bubbleE),
+        .flushM(flushM),
+        .bubbleM(bubbleM),
+        .flushW(flushW),
+        .bubbleW(bubbleW),
+        .op1_sel(op1_sel),
+        .op2_sel(op2_sel),
+        .reg2_sel(reg2_sel),
+
+        .miss(miss)
+    );  
+    	         
+endmodule

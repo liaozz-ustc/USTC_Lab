@@ -1,0 +1,11 @@
+C:\CMake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" "E:\Numercial Method\lab1\ex2\num_to_string_add"
+-- The C compiler identification is GNU 8.1.0
+-- Check for working C compiler: C:/mingw64/bin/gcc.exe
+-- Check for working C compiler: C:/mingw64/bin/gcc.exe -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: E:/Numercial Method/lab1/ex2/num_to_string_add/cmake-build-debug

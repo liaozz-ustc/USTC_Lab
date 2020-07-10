@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toolBar">
+        <div id="inputField">
+            <div id="inputHours" class="inputValue">
+                <div id="inputDivHours">
+                    <input type="text" id="hour" class="inputFont" value=0>
+                    <label for="hour">时</label>
+                </div>
+            </div>
+            <div id="inputMinutes" class="inputValue">
+                <div id="inputDivMinutes">
+                    <input type="text" id="minute" class="inputFont" value=0>
+                    <label for="minute">分</label>
+                </div>
+            </div>
+            <div id="inputSeconds" class="inputValue">
+                <div id="inputDivSeconds">
+                    <input type="text" id="second" class="inputFont" value=0>
+                    <label for="second">秒</label>
+                </div>
+            </div>
+            <button type="button" id="countup" class="button">
+                开始正计时
+            </button>
+            <button type="button" id="countdown" class="button">
+                开始倒计时
+            </button>
+        </div>
+    </div>
+    <div id="mainTimer">
+        <div id="timerContainer">
+            <span id="time">00:00:00</span>
+        </div>
+    </div>
+</body>
+</html>

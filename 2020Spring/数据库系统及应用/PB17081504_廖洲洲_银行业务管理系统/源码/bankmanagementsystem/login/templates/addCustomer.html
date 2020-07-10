@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block mainbody %}
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+            <legend>增加客户</legend>
+        </fieldset>
+        <div style="padding: 15px;">
+            <form class="layui-form layui-form-pane" action="/customer/add/" method="post">
+                {% csrf_token %}
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">客户身份证号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="customerID" lay-verify="identity" placeholder="请输入客户ID" autocomplete="off"
+                               class="layui-input" value="360730200001015400">
+                    </div>
+                    <label style="width:130px;" class="layui-form-label">客户姓名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="customerName" lay-verify="name" placeholder="请输入客户姓名" autocomplete="off"
+                               class="layui-input" value="客户">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">客户地址</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="address" lay-verify="required|address" placeholder="请输入客户地址" autocomplete="off"
+                               class="layui-input" value="合肥市">
+                    </div>
+                    <label style="width:130px;" class="layui-form-label">客户手机号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="phone" lay-verify="phone" placeholder="请输入客户手机号" autocomplete="off"
+                               class="layui-input" value="17679270000">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">负责人身份证号</label>
+                    <div class="layui-input-inline">
+                        <input  name="staffID" lay-verify="identity" placeholder="请输入负责人身份证号" autocomplete="off"
+                               class="layui-input" style="width: 520px;" value="360730199001011001">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">联系人姓名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="linkmanName" lay-verify="name" placeholder="请输入客户联系人姓名" autocomplete="off"
+                               class="layui-input" value="联系人">
+                    </div>
+                    <label style="width:130px;" class="layui-form-label">联系人手机号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="linkmanPhone" lay-verify="phone" placeholder="请输入客户联系人手机号" autocomplete="off"
+                               class="layui-input" value="17679271001">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">联系人邮箱</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="linkmanEmail" lay-verify="email" placeholder="请输入客户联系人邮箱" autocomplete="off"
+                               class="layui-input" value="liaozz00@mail.ustc.edu.com">
+                    </div>
+                    <label style="width:130px;" class="layui-form-label">联系人关系</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="linkmanRelationship" lay-verify="required|relationship" placeholder="请输入客户联系人与客户关系" autocomplete="off"
+                               class="layui-input" value="夫妻">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label style="width:130px;" class="layui-form-label">创建时间</label>
+                    <div class="layui-input-inline">
+                        <input  name="createTime" lay-verify="date" autocomplete="off"
+                                class="layui-input" style="width: 520px;" id="addDate" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock mainbody %}
+{% block extrajs %}
+
+    layui.use(['form', 'layedit', 'laydate','element'], function(){
+        var form = layui.form
+            ,layer = layui.layer
+            ,layedit = layui.layedit
+            ,laydate = layui.laydate
+            ,element = layui.element;
+        //自定义验证规则
+
+        var status = {{ status|safe }};
+        var message = {{ message|safe }};
+        if (status == 200 ) {
+            layer.alert(message,{icon:6});
+        } else if (status == 400){
+            layer.alert(message,{icon:5});
+        }
+
+    });
+
+{% endblock extrajs%}

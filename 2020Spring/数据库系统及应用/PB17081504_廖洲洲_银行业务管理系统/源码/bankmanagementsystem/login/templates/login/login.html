@@ -1,0 +1,90 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <title>login</title>#}
+{#</head>#}
+{#<body>#}
+{#    <h1>欢迎登录</h1>#}
+{#    <form action="/user/login/" method="post">#}
+{#        {% csrf_token %}#}
+{#        <p>#}
+{#            <label for="username">用户名:</label>#}
+{#            <input type="text" id="username" name="username" required autofocus>#}
+{#        </p>#}
+{#        <p>#}
+{#            <label for="password">密码：</label>#}
+{#            <input type="password" id="password" name="password" required>#}
+{#        </p>#}
+{#        <div>#}
+{#            <button type="submit">登录</button>#}
+{#            <a href="/user/signup/">注册</a>#}
+{#        </div>#}
+{#    </form>#}
+{#</body>#}
+{##}
+{#<script>#}
+{#    var status = {{ status|safe }};#}
+{#    var message = {{ message|safe }};#}
+{#    alert(status + ":" + message);#}
+{#    if (status == 200 ) {#}
+{#        window.location.href = "/index/";#}
+{#    }#}
+{#</script>#}
+{##}
+{% extends 'base.html' %}
+{% block mainbody %}
+    <div class="layui-body">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>欢迎登录</legend>
+    </fieldset>
+    <div style="padding: 15px;position: absolute;top:20%;left: 20%">
+        <form class="layui-form layui-form-pane" action="/user/login/" method="post">
+            {% csrf_token %}
+            <div class="layui-form-item">
+                <label style="width:130px;" class="layui-form-label">用户名</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="username" lay-verify="name" placeholder="请输入用户名" autocomplete="off"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label" style="width:130px;">密码</label>
+                <div class="layui-input-inline">
+                    <input type="password" name="password" required lay-verify="required" placeholder="请输入密码"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">登录</button>
+                    <a class="layui-btn" href="/user/signup/">注册</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    </div>
+{% endblock mainbody %}
+
+{% block extrajs %}
+
+    layui.use(['form', 'layedit', 'laydate','element'], function(){
+    var form = layui.form
+    ,layer = layui.layer
+    ,layedit = layui.layedit
+    ,laydate = layui.laydate
+    ,element = layui.element;
+    //自定义验证规则
+
+    var status = {{ status|safe }};
+    var message = {{ message|safe }};
+    if (status == 200 ) {
+    layer.alert(message,{icon:6});
+    window.location.href = "/index/";
+    } else if (status == 404){
+    layer.alert(message,{icon:5});
+    }
+
+    });
+
+{% endblock extrajs %}

@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block mainbody %}
+    <div class="layui-tab layui-tab-card">
+        <ul class="layui-tab-title">
+            <li>全部贷款信息</li>
+            <li class="layui-this">条件查询</li>
+            <li>查询贷款发放情况</li>
+        </ul>
+        <div class="layui-tab-content" style="height:1500px">
+
+            <div class="layui-tab-item">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>全部贷款信息</legend>
+                </fieldset>
+                <table class="layui-table" lay-data="{url:'/loan/search/all/', id:'test3'}" lay-filter="test3">
+                    <thead>
+                    <tr>
+                        <th lay-data="{field:'loanid', width:190, sort: true}">贷款号</th>
+                        <th lay-data="{field:'bankname', edit: 'text'}">贷款银行</th>
+                        <th lay-data="{field:'sum', edit: 'text'}">贷款总额</th>
+                        <th lay-data="{field:'times', edit: 'text'}">预计分付次数</th>
+                        <th lay-data="{field:'paysum', edit: 'text'}">已付金额</th>
+                        <th lay-data="{field:'state', edit: 'text'}">贷款状态</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <div class="layui-tab-item  layui-show">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>按条件搜索</legend>
+                </fieldset>
+                <div style="padding: 15px;">
+                    <form class="layui-form layui-form-pane" action="/loan/search/condition/" method="post">
+                        {% csrf_token %}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" style="width:130px;">条件搜索</label>
+                            <div class="layui-input-inline">
+                                <select name="searchType" lay-filter="searchType" id="searchType">
+                                    <option value="1" selected="">按身份证搜索</option>
+                                    <option value="2">按姓名搜索</option>
+                                    <option value="3">按贷款号搜索</option>
+                                    <option value="4">按支行搜索</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label style="width:130px;" class="layui-form-label" id="customerIDLabel">客户身份证号</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="customerID" lay-verify="identity" autocomplete="off"
+                                       class="layui-input" value="360730200001015400" id="customerID">
+                            </div>
+                            <label style="width:130px;display: none" class="layui-form-label" id="customerNameLabel">客户姓名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="customerName" lay-verify="name" autocomplete="off"
+                                       class="layui-input" value="客户" id="customerName" style="display: none">
+                            </div>
+                            <label style="width:130px;display: none" class="layui-form-label"
+                                   id="accountIDLabel">贷款号</label>
+                            <div class="layui-input-inline">
+                                <input name="accountID" lay-verify="account" autocomplete="off"
+                                       class="layui-input" value="0001" id="accountID" style="display: none">
+                            </div>
+                            <label style="width:130px;display: none" class="layui-form-label"
+                                   id="bankNameLabel">银行名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="bankName" lay-verify="required|chinese" autocomplete="off"
+                                       class="layui-input" value="北京支行" id="bankName" style="display: none">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {% if code == '200' %}
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>搜索结果</legend>
+                    </fieldset>
+                    <table class="layui-table" lay-even="" lay-skin="row"
+                           lay-data="{height: 'full-200', cellMinWidth: 80}">
+                        <thead>
+                        <th lay-data="{field:'customerid', width:180, sort: true}">贷款人身份证号</th>
+                        <th lay-data="{field:'loanid', width:190, sort: true}">贷款号</th>
+                        <th lay-data="{field:'bankname', edit: 'text'}">贷款银行</th>
+                        <th lay-data="{field:'sum', edit: 'text'}">贷款总额</th>
+                        <th lay-data="{field:'times', edit: 'text'}">预计分付次数</th>
+                        <th lay-data="{field:'paysum', edit: 'text'}">已付金额</th>
+                        <th lay-data="{field:'state', edit: 'text'}">贷款状态</th>
+                        </thead>
+                        <tbody>
+                        {% for i in data %}
+                            <tr>
+                                <td>{{ i.customerid }}</td>
+                                <td>{{ i.loanid }}</td>
+                                <td>{{ i.bankname }}</td>
+                                <td>{{ i.sum }}</td>
+                                <td>{{ i.times }}</td>
+                                <td>{{ i.paysum }}</td>
+                                <td>{{ i.state }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+
+                {% endif %}
+            </div>
+
+            <div class="layui-tab-item ">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>查看贷款发放情况</legend>
+                </fieldset>
+                <div style="padding: 15px;">
+                    <form class="layui-form layui-form-pane" action="/loan/search/info/" method="post">
+                        {% csrf_token %}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" style="width:130px;">条件搜索</label>
+                            <div class="layui-input-inline">
+                                <select name="searchType" lay-filter="searchType">
+                                    <option value="1" selected="">按贷款号搜索</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+
+
+                            <label style="width:130px" class="layui-form-label">贷款号</label>
+                            <div class="layui-input-inline">
+                                <input name="accountID" lay-verify="account" autocomplete="off"
+                                       class="layui-input" value="0001">
+                            </div>
+
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock mainbody %}
+{% block extrajs %}
+
+    layui.use(['form', 'layedit', 'laydate','element'], function(){
+    var form = layui.form
+    ,layer = layui.layer
+    ,layedit = layui.layedit
+    ,laydate = layui.laydate
+    ,element = layui.element;
+
+    var status = {{ code|safe }};
+    var message = {{ msg|safe }};
+    if (status == 200 ) {
+    layer.alert(message,{icon:6});
+    } else if (status == 400){
+    layer.alert(message,{icon:5});
+    }
+
+    });
+
+
+    layui.use('table', function () {
+    var table = layui.table;
+
+    //监听单元格编辑
+    table.on('edit(test3)', function (obj) {
+    var value = obj.value //得到修改后的值
+    , data = obj.data //得到所在行所有键值
+    , field = obj.field; //得到字段
+    layer.msg('[ID: ' + data.customerid + '] ' + field + ' 字段更改为：' + value);
+    });
+    });
+
+    layui.use('table', function () {
+    var table = layui.table;
+
+    //监听单元格编辑
+    table.on('edit(cheque)', function (obj) {
+    var value = obj.value //得到修改后的值
+    , data = obj.data //得到所在行所有键值
+    , field = obj.field; //得到字段
+    layer.msg('[ID: ' + data.customerid + '] ' + field + ' 字段更改为：' + value);
+    });
+    });
+
+{% endblock extrajs %}
+{% block extrajs2 %}
+    <script>
+
+        layui.use(['form'], function () {
+            var form = layui.form;
+            var layer = layui.layer;
+            form.on('select(searchType)', function (data) {
+                if (data.value === '1') {
+                    disableAll()
+                    document.getElementById("customerID").style.display = "inline-block";
+                    document.getElementById("customerIDLabel").style.display = "inline-block";
+                } else if (data.value === '2') {
+                    disableAll()
+                    document.getElementById("customerName").style.display = "inline-block";
+                    document.getElementById("customerNameLabel").style.display = "inline-block";
+                } else if (data.value === '4') {
+                    disableAll()
+                    document.getElementById("bankName").style.display = "inline-block";
+                    document.getElementById("bankNameLabel").style.display = "inline-block";
+                } else {
+                    disableAll()
+                    document.getElementById("accountID").style.display = "inline-block";
+                    document.getElementById("accountIDLabel").style.display = "inline-block";
+                }
+            });
+
+        });
+
+        function disableAll() {
+            document.getElementById("customerID").style.display = "none";
+            document.getElementById("customerID").value = "360730200001015400";
+            document.getElementById("customerName").style.display = "none";
+            document.getElementById("customerName").value = "客户"
+            document.getElementById("customerIDLabel").style.display = "none";
+            document.getElementById("customerNameLabel").style.display = "none";
+            document.getElementById("accountID").style.display = "none";
+            document.getElementById("accountID").value = '0001'
+            document.getElementById("accountIDLabel").style.display = "none";
+            document.getElementById("bankName").style.display = "none";
+            document.getElementById("bankName").value = "北京支行"
+            document.getElementById("bankNameLabel").style.display = "none";
+        }
+    </script>
+{% endblock extrajs2 %}
